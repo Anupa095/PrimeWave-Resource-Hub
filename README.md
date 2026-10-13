@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Resource Reservation Management System
 
-## Getting Started
+A full-stack resource booking application built with Next.js, TypeScript, Prisma, and PostgreSQL. It helps teams manage shared rooms, equipment, and time-based reservations without scheduling conflicts.
 
-First, run the development server:
+## Features
+
+- Resource directory with categories, capacity, location, and descriptions
+- Reservation creation with validation for time overlap and invalid inputs
+- Upcoming reservation dashboard and overview stats
+- Prisma ORM with PostgreSQL persistence
+- Seeded sample users and resources for local demos
+
+## Tech Stack
+
+- Next.js 16 App Router
+- TypeScript
+- PostgreSQL
+- Prisma ORM
+- Tailwind CSS
+
+## Local Setup
+
+1. Install dependencies
+
+```bash
+npm install
+```
+
+2. Create a PostgreSQL database locally.
+
+3. Copy the example environment file and update the connection string for your local database:
+
+```bash
+copy .env.example .env
+```
+
+Then edit `.env` and set:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/resource_reservation_db?schema=public"
+```
+
+4. Run Prisma migrations and seed the database:
+
+```bash
+npx prisma migrate dev --name init
+npm run prisma:seed
+```
+
+If your environment uses the Prisma config script automatically, you can also run:
+
+```bash
+npx prisma db push
+npx tsx prisma/seed.ts
+```
+
+5. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Useful Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run lint     # linting
+```
 
-## Learn More
+## ER Diagram
 
-To learn more about Next.js, take a look at the following resources:
+```mermaid
+erDiagram
+    USER ||--o{ RESERVATION : makes
+    RESOURCE ||--o{ RESERVATION : booked_for
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    USER {
+      string id PK
+      string name
+      string email UK
+      enum role
+      datetime createdAt
+    }
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    RESOURCE {
+      string id PK
+      string name
+      string category
+      int capacity
+      string location
+      string description
+      datetime createdAt
+    }
 
-## Deploy on Vercel
+    RESERVATION {
+      string id PK
+      string userId FK
+      string resourceId FK
+      datetime startTime
+      datetime endTime
+      enum status
+      datetime createdAt
+    }
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This relationship model supports one user creating many reservations, while each reservation references exactly one resource and one user.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- Reservation creation validates that the end time is after the start time.
+- Overlapping bookings for the same resource are rejected to prevent scheduling conflicts.
+- The app is designed for a local development workflow and can be extended for authentication, admin controls, or reporting.
